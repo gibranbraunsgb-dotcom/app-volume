@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Volume de Treino</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #0f172a, #1e293b);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: 100%;
+      max-width: 720px;
+      background: rgba(17, 24, 39, 0.95);
+      border: 1px solid #334155;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    h1 { margin-top: 0; font-size: 1.4rem; }
+    p { color: var(--muted); margin-top: 0; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr auto;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    input, button {
+      border: 1px solid #374151;
+      border-radius: 10px;
+      padding: 10px;
+      font-size: 0.95rem;
+      background: #0b1220;
+      color: var(--text);
+    }
+
+    input::placeholder { color: #6b7280; }
+
+    button {
+      background: var(--accent);
+      color: #052e16;
+      border: none;
+      cursor: pointer;
+      font-weight: bold;
+    }
+
+    button:hover { filter: brightness(1.05); }
+
+    .list {
+      margin-top: 10px;
+      border-top: 1px solid #334155;
+      padding-top: 10px;
+    }
+
+    .item {
+      display: grid;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr auto;
+      gap: 8px;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px dashed #334155;
+      font-size: 0.95rem;
+    }
+
+    .badge {
+      display: inline-block;
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-weight: bold;
+    }
+
+    .remove {
+      background: var(--danger);
+      color: white;
+      padding: 6px 10px;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .totals {
+      margin-top: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .small { color: var(--muted); font-size: 0.9rem; }
+
+    @media (max-width: 680px) {
+      .grid { grid-template-columns: 1fr 1fr; }
+      .grid input:nth-child(1) { grid-column: span 2; }
+      .grid button { grid-column: span 2; }
+
+      .item {
+        grid-template-columns: 1fr 1fr;
+        gap: 6px;
+      }
+      .item > * { background: #0b1220; padding: 6px; border-radius: 8px; }
+      .item .remove { text-align: center; }
+    }
+/* ===== Ajuste de layout responsivo ===== */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  padding: 16px;
+  font-family: Arial, sans-serif;
+  background: #f5f7fb;
+  color: #1f2937;
+}
+
+.app {
+  width: 100%;
+  max-width: 620px;
+  margin: 0 auto;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 14px;
+  padding: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.05);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  width: 100%;
+}
+
+.grid input,
+.grid button {
+  width: 100%;
+  min-height: 44px;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  padding: 10px 12px;
+  font-size: 16px; /* ajuda no iPhone a não dar zoom */
+}
+
+#aluno,
+#exercicio,
+#addBtn {
+  grid-column: 1 / -1; /* ocupa linha inteira */
+}
+
+#addBtn {
+  border: none;
+  background: #2563eb;
+  color: #fff;
+  font-weight: 700;
+}
+
+#addBtn:active {
+  transform: translateY(1px);
+}
+
+/* celular: tudo em 1 coluna */
+@media (max-width: 640px) {
+  .app {
+    padding: 12px;
+    border-radius: 12px;
+  }
+
+  .grid {
+    grid-template-columns: 1fr;
+  }
+
+  #aluno,
+  #exercicio,
+  #addBtn {
+    grid-column: auto;
+  }
+}
+  </style>
+</head>
+<body>
+  <main class="app">
+    <h1>📈 Calculadora de Volume de Treino</h1>
+    <p>Volume = séries × repetições × carga (kg)</p>
+
+   <section class="grid">
+  <input id="aluno" type="text" placeholder="Nome do aluno" />
+  <input id="exercicio" type="text" placeholder="Ex: Supino reto" />
+  <input id="series" type="number" min="1" placeholder="Séries" />
+  <input id="reps" type="number" min="1" placeholder="Reps" />
+  <input id="carga" type="number" min="0" step="0.5" placeholder="Carga (kg)" />
+  <button id="addBtn">Adicionar</button>
+</section>
+
+    <section class="list" id="lista"></section>
+
+    <section class="totals">
+      <span class="badge">Volume total: <span id="total">0</span> kg</span>
+      <span class="small">Dica: esse “kg” é tonelagem de treino, não peso corporal 😄</span>
+    </section>
+  </main>
+
+  <script>
+const alunoInput = document.getElementById("aluno");
+const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFpf7hVaPplTqiP3V1YMY2-5SNsrWm95ZGNDBoJzVcycfoF1KcTCKgO6AGo86bQiEa/exec";
+    const exercicioInput = document.getElementById("exercicio");
+    const seriesInput = document.getElementById("series");
+    const repsInput = document.getElementById("reps");
+    const cargaInput = document.getElementById("carga");
+    const addBtn = document.getElementById("addBtn");
+    const lista = document.getElementById("lista");
+    const totalEl = document.getElementById("total");
+
+    let exercicios = [];
+
+    function calcularVolume(series, reps, carga) {
+      return series * reps * carga;
+    }
+
+    function render() {
+      lista.innerHTML = "";
+      let volumeTotal = 0;
+
+      exercicios.forEach((item, index) => {
+        const volume = calcularVolume(item.series, item.reps, item.carga);
+        volumeTotal += volume;
+
+        const row = document.createElement("div");
+        row.className = "item";
+        row.innerHTML = `
+          <strong>${item.exercicio}</strong>
+          <span>${item.series} séries</span>
+          <span>${item.reps} reps</span>
+          <span>${item.carga} kg</span>
+          <span><b>${volume.toFixed(1)} kg</b></span>
+          <button class="remove" data-index="${index}">Excluir</button>
+        `;
+        lista.appendChild(row);
+      });
+
+      totalEl.textContent = volumeTotal.toFixed(1);
+
+      document.querySelectorAll(".remove").forEach(btn => {
+        btn.addEventListener("click", (e) => {
+          const i = Number(e.target.dataset.index);
+          exercicios.splice(i, 1);
+          render();
+        });
+      });
+    }
+
+    function adicionarExercicio() {
+  const aluno = alunoInput.value.trim();
+  const exercicio = exercicioInput.value.trim();
+  const series = Number(seriesInput.value);
+  const reps = Number(repsInput.value);
+  const carga = Number(cargaInput.value);
+
+  if (!aluno || !exercicio || series <= 0 || reps <= 0 || carga < 0) {
+    alert("Preencha aluno e todos os campos corretamente.");
+    return;
+  }
+
+  exercicios.push({ exercicio, series, reps, carga });
+
+  const dados = new URLSearchParams({
+    aluno: aluno,
+    exercicio: exercicio,
+    series: String(series),
+    reps: String(reps),
+    carga: String(carga)
+  });
+
+  fetch(WEB_APP_URL, {
+    method: "POST",
+    body: dados,
+    mode: "no-cors"
+  });
+
+  exercicioInput.value = "";
+  seriesInput.value = "";
+  repsInput.value = "";
+  cargaInput.value = "";
+  exercicioInput.focus();
+
+  render();
+}
+    addBtn.addEventListener("click", adicionarExercicio);
+
+    [exercicioInput, seriesInput, repsInput, cargaInput].forEach(input => {
+      input.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") adicionarExercicio();
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>
