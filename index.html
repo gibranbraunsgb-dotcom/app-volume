@@ -257,8 +257,8 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFpf7hVaPplTqiP3V1
   <strong>${item.exercicio}</strong>
   <span>${item.series} séries</span>
   <span>${item.reps} reps</span>
-  <span class="peso">${item.carga} kg</span>
-  <span class="volume"><b>${volume.toFixed(1)} kg</b></span>
+  <span style="color:#fff; background:#334155; padding:6px 10px; border-radius:8px; font-weight:700;">${item.carga} kg</span>
+  <span style="color:#fff; background:#0f766e; padding:6px 10px; border-radius:8px; font-weight:700;">${volume.toFixed(1)} kg</span>
   <button class="remove" data-index="${index}">Excluir</button>
 `;
         lista.appendChild(row);
