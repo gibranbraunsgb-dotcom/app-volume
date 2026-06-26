@@ -202,6 +202,38 @@ body {
   }
 }
   </style>
+/* ===== Correção de contraste da lista ===== */
+.item {
+  background: #1f2937;
+  border: 1px solid #374151;
+  border-radius: 10px;
+  padding: 8px;
+  margin-bottom: 8px;
+}
+
+.txt-claro {
+  color: #ffffff !important;
+}
+
+.item strong,
+.item span {
+  color: #ffffff !important;
+}
+
+/* mantém peso e tonelagem destacados */
+.peso,
+.volume,
+.volume b {
+  color: #ffffff !important;
+  font-weight: 700;
+}
+
+/* no mobile, força contraste também */
+@media (max-width: 680px) {
+  .item > * {
+    color: #ffffff !important;
+  }
+}
 </head>
 <body>
   <main class="app">
@@ -253,11 +285,11 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFpf7hVaPplTqiP3V1
         const row = document.createElement("div");
         row.className = "item";
         row.innerHTML = `
-  <strong>${item.exercicio}</strong>
-  <span>${item.series} séries</span>
-  <span>${item.reps} reps</span>
-  <span style="color:#fff; background:#334155; padding:6px 10px; border-radius:8px; font-weight:700;">${item.carga} kg</span>
-  <span style="color:#fff; background:#0f766e; padding:6px 10px; border-radius:8px; font-weight:700;">${volume.toFixed(1)} kg</span>
+  <strong class="txt-claro">${item.exercicio}</strong>
+  <span class="txt-claro">${item.series} séries</span>
+  <span class="txt-claro">${item.reps} reps</span>
+  <span class="peso">${item.carga} kg</span>
+  <span class="volume"><b>${volume.toFixed(1)} kg</b></span>
   <button class="remove" data-index="${index}">Excluir</button>
 `;
         lista.appendChild(row);
