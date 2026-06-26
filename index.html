@@ -233,6 +233,19 @@ body {
     color: #ffffff !important;
   }
 }
+#pdfBtn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: 8px;
+}
+#pdfBtn:hover {
+  filter: brightness(1.05);
+}
   </style>
 
 </head>
@@ -254,115 +267,173 @@ body {
 
     <section class="totals">
       <span class="badge">Volume total: <span id="total">0</span> kg</span>
+<button id="pdfBtn">Gerar PDF</button>
       <span class="small">Dica: esse “kg” é tonelagem de treino, não peso corporal 😄</span>
     </section>
   </main>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 
-  <script>
-const alunoInput = document.getElementById("aluno");
-const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFpf7hVaPplTqiP3V1YMY2-5SNsrWm95ZGNDBoJzVcycfoF1KcTCKgO6AGo86bQiEa/exec";
-    const exercicioInput = document.getElementById("exercicio");
-    const seriesInput = document.getElementById("series");
-    const repsInput = document.getElementById("reps");
-    const cargaInput = document.getElementById("carga");
-    const addBtn = document.getElementById("addBtn");
-    const lista = document.getElementById("lista");
-    const totalEl = document.getElementById("total");
+<script>
+  const alunoInput = document.getElementById("aluno");
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFpf7hVaPplTqiP3V1YMY2-5SNsrWm95ZGNDBoJzVcycfoF1KcTCKgO6AGo86bQiEa/exec";
+  const exercicioInput = document.getElementById("exercicio");
+  const seriesInput = document.getElementById("series");
+  const repsInput = document.getElementById("reps");
+  const cargaInput = document.getElementById("carga");
+  const addBtn = document.getElementById("addBtn");
+  const lista = document.getElementById("lista");
+  const totalEl = document.getElementById("total");
+  const pdfBtn = document.getElementById("pdfBtn");
 
-    let exercicios = [];
+  let exercicios = [];
 
-    function calcularVolume(series, reps, carga) {
-      return series * reps * carga;
-    }
-
-    function render() {
-      lista.innerHTML = "";
-      let volumeTotal = 0;
-
-      exercicios.forEach((item, index) => {
-        const volume = calcularVolume(item.series, item.reps, item.carga);
-        volumeTotal += volume;
-
-        const row = document.createElement("div");
-        row.className = "item";
-        row.innerHTML = `
-  <strong class="txt-claro">${item.exercicio}</strong>
-  <span class="txt-claro">${item.series} séries</span>
-  <span class="txt-claro">${item.reps} reps</span>
-  <span class="peso">${item.carga} kg</span>
-  <span class="volume"><b>${volume.toFixed(1)} kg</b></span>
-  <button class="remove" data-index="${index}">Excluir</button>
-`;
-        lista.appendChild(row);
-      });
-
-      totalEl.textContent = volumeTotal.toFixed(1);
-
-      document.querySelectorAll(".remove").forEach(btn => {
-        btn.addEventListener("click", (e) => {
-          const i = Number(e.target.dataset.index);
-          exercicios.splice(i, 1);
-          render();
-        });
-      });
-    }
-
-    function adicionarExercicio() {
-  const aluno = alunoInput.value.trim();
-  const exercicio = exercicioInput.value.trim();
-  const series = parseFloat(String(seriesInput.value).replace(",", "."));
-  const reps = parseFloat(String(repsInput.value).replace(",", "."));
-  const carga = parseFloat(String(cargaInput.value).replace(",", "."));
-
-  if (
-    !aluno ||
-    !exercicio ||
-    !Number.isFinite(series) ||
-    !Number.isFinite(reps) ||
-    !Number.isFinite(carga) ||
-    series <= 0 ||
-    reps <= 0 ||
-    carga < 0
-  ) {
-    alert("Preencha aluno e todos os campos corretamente.");
-    return;
+  function calcularVolume(series, reps, carga) {
+    return Number(series) * Number(reps) * Number(carga);
   }
 
-  exercicios.push({ exercicio, series, reps, carga });
+  function gerarPDF() {
+    if (!exercicios.length) {
+      alert("Adicione pelo menos um exercício antes de gerar o PDF.");
+      return;
+    }
 
-  const dados = new URLSearchParams({
-    aluno: aluno,
-    exercicio: exercicio,
-    series: String(series),
-    reps: String(reps),
-    carga: String(carga)
-  });
+    if (!window.jspdf) {
+      alert("Biblioteca de PDF não carregou ainda. Recarregue a página e tente novamente.");
+      return;
+    }
 
-  fetch(WEB_APP_URL, {
-    method: "POST",
-    body: dados,
-    mode: "no-cors"
-  })
-    .then(() => console.log("Enviado"))
-    .catch((err) => console.error("Erro no envio:", err));
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
 
-  exercicioInput.value = "";
-  seriesInput.value = "";
-  repsInput.value = "";
-  cargaInput.value = "";
-  exercicioInput.focus();
+    const aluno = (alunoInput.value || "").trim() || "Aluno";
+    const data = new Date().toLocaleDateString("pt-BR");
 
-  render();
-}
-    addBtn.addEventListener("click", adicionarExercicio);
-
-    [exercicioInput, seriesInput, repsInput, cargaInput].forEach(input => {
-      input.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") adicionarExercicio();
-      });
+    let volumeTotal = 0;
+    const linhas = exercicios.map((item) => {
+      const volume = calcularVolume(item.series, item.reps, item.carga);
+      volumeTotal += volume;
+      return [
+        item.exercicio,
+        String(item.series),
+        String(item.reps),
+        `${item.carga} kg`,
+        `${volume.toFixed(1)} kg`
+      ];
     });
 
+    doc.setFontSize(16);
+    doc.text("Relatório de Treino", 14, 16);
+
+    doc.setFontSize(11);
+    doc.text(`Aluno: ${aluno}`, 14, 24);
+    doc.text(`Data: ${data}`, 14, 30);
+    doc.text(`Volume total: ${volumeTotal.toFixed(1)} kg`, 14, 36);
+
+    doc.autoTable({
+      startY: 42,
+      head: [["Exercício", "Séries", "Reps", "Carga", "Volume"]],
+      body: linhas,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [37, 99, 235] }
+    });
+
+    const nomeArquivo = `treino-${aluno.replace(/\s+/g, "_").toLowerCase()}.pdf`;
+    doc.save(nomeArquivo);
+  }
+
+  function render() {
+    lista.innerHTML = "";
+    let volumeTotal = 0;
+
+    exercicios.forEach((item, index) => {
+      const volume = calcularVolume(item.series, item.reps, item.carga);
+      volumeTotal += volume;
+
+      const row = document.createElement("div");
+      row.className = "item";
+      row.innerHTML = `
+        <strong class="txt-claro">${item.exercicio}</strong>
+        <span class="txt-claro">${item.series} séries</span>
+        <span class="txt-claro">${item.reps} reps</span>
+        <span class="peso">${item.carga} kg</span>
+        <span class="volume"><b>${volume.toFixed(1)} kg</b></span>
+        <button class="remove" data-index="${index}">Excluir</button>
+      `;
+      lista.appendChild(row);
+    });
+
+    totalEl.textContent = volumeTotal.toFixed(1);
+
+    document.querySelectorAll(".remove").forEach((btn) => {
+      btn.addEventListener("click", (e) => {
+        const i = Number(e.target.dataset.index);
+        exercicios.splice(i, 1);
+        render();
+      });
+    });
+  }
+
+  function adicionarExercicio() {
+    const aluno = alunoInput.value.trim();
+    const exercicio = exercicioInput.value.trim();
+    const series = parseFloat(String(seriesInput.value).replace(",", "."));
+    const reps = parseFloat(String(repsInput.value).replace(",", "."));
+    const carga = parseFloat(String(cargaInput.value).replace(",", "."));
+
+    if (
+      !aluno ||
+      !exercicio ||
+      !Number.isFinite(series) ||
+      !Number.isFinite(reps) ||
+      !Number.isFinite(carga) ||
+      series <= 0 ||
+      reps <= 0 ||
+      carga < 0
+    ) {
+      alert("Preencha aluno e todos os campos corretamente.");
+      return;
+    }
+
+    exercicios.push({ exercicio, series, reps, carga });
+
+    const dados = new URLSearchParams({
+      aluno: aluno,
+      exercicio: exercicio,
+      series: String(series),
+      reps: String(reps),
+      carga: String(carga)
+    });
+
+    fetch(WEB_APP_URL, {
+      method: "POST",
+      body: dados,
+      mode: "no-cors"
+    })
+      .then(() => console.log("Enviado"))
+      .catch((err) => console.error("Erro no envio:", err));
+
+    exercicioInput.value = "";
+    seriesInput.value = "";
+    repsInput.value = "";
+    cargaInput.value = "";
+    exercicioInput.focus();
+
     render();
-  </script>
+  }
+
+  addBtn.addEventListener("click", adicionarExercicio);
+  pdfBtn.addEventListener("click", gerarPDF);
+
+  [exercicioInput, seriesInput, repsInput, cargaInput].forEach((input) => {
+    input.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") adicionarExercicio();
+    });
+  });
+
+  render();
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 </body>
 </html>
