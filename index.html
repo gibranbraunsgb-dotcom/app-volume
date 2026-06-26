@@ -254,13 +254,13 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFpf7hVaPplTqiP3V1
         const row = document.createElement("div");
         row.className = "item";
         row.innerHTML = `
-          <strong>${item.exercicio}</strong>
-          <span>${item.series} séries</span>
-          <span>${item.reps} reps</span>
-          <span>${item.carga} kg</span>
-          <span><b>${volume.toFixed(1)} kg</b></span>
-          <button class="remove" data-index="${index}">Excluir</button>
-        `;
+  <strong>${item.exercicio}</strong>
+  <span>${item.series} séries</span>
+  <span>${item.reps} reps</span>
+  <span class="peso">${item.carga} kg</span>
+  <span class="volume"><b>${volume.toFixed(1)} kg</b></span>
+  <button class="remove" data-index="${index}">Excluir</button>
+`;
         lista.appendChild(row);
       });
 
@@ -278,11 +278,20 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFpf7hVaPplTqiP3V1
     function adicionarExercicio() {
   const aluno = alunoInput.value.trim();
   const exercicio = exercicioInput.value.trim();
-  const series = Number(seriesInput.value);
-  const reps = Number(repsInput.value);
-  const carga = Number(cargaInput.value);
+  const series = parseFloat(String(seriesInput.value).replace(",", "."));
+  const reps = parseFloat(String(repsInput.value).replace(",", "."));
+  const carga = parseFloat(String(cargaInput.value).replace(",", "."));
 
-  if (!aluno || !exercicio || series <= 0 || reps <= 0 || carga < 0) {
+  if (
+    !aluno ||
+    !exercicio ||
+    !Number.isFinite(series) ||
+    !Number.isFinite(reps) ||
+    !Number.isFinite(carga) ||
+    series <= 0 ||
+    reps <= 0 ||
+    carga < 0
+  ) {
     alert("Preencha aluno e todos os campos corretamente.");
     return;
   }
@@ -301,7 +310,9 @@ const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFpf7hVaPplTqiP3V1
     method: "POST",
     body: dados,
     mode: "no-cors"
-  });
+  })
+    .then(() => console.log("Enviado"))
+    .catch((err) => console.error("Erro no envio:", err));
 
   exercicioInput.value = "";
   seriesInput.value = "";
