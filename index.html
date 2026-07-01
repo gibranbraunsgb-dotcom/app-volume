@@ -276,7 +276,7 @@ body {
 
 <script>
   const alunoInput = document.getElementById("aluno");
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwFpf7hVaPplTqiP3V1YMY2-5SNsrWm95ZGNDBoJzVcycfoF1KcTCKgO6AGo86bQiEa/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby9CExQsTDqCPfDYb2WKttz7S6emqZJWI50IoRHq79NFxlfzPUK51x-D4RX1zEyY00a/exec";
   const exercicioInput = document.getElementById("exercicio");
   const seriesInput = document.getElementById("series");
   const repsInput = document.getElementById("reps");
@@ -404,14 +404,19 @@ body {
       reps: String(reps),
       carga: String(carga)
     });
-
-    fetch(WEB_APP_URL, {
-      method: "POST",
-      body: dados,
-      mode: "no-cors"
-    })
-      .then(() => console.log("Enviado"))
-      .catch((err) => console.error("Erro no envio:", err));
+fetch(WEB_APP_URL, {
+  method: "POST",
+  headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
+  body: dados.toString()
+})
+  .then((r) => r.text())
+  .then((txt) => {
+    console.log("Resposta:", txt);
+  })
+  .catch((err) => {
+    console.error("Erro no envio:", err);
+    alert("Falha ao enviar para a planilha.");
+  });
 
     exercicioInput.value = "";
     seriesInput.value = "";
