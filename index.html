@@ -276,7 +276,7 @@ body {
 
 <script>
   const alunoInput = document.getElementById("aluno");
-  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycby9CExQsTDqCPfDYb2WKttz7S6emqZJWI50IoRHq79NFxlfzPUK51x-D4RX1zEyY00a/exec";
+  const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxkkvW3pBXfr-cw-WEBUVUJoQokMvz2XymnEkiigGdTi_rkQvtNPbrhNE1LnkNbNHJ8/exec";
   const exercicioInput = document.getElementById("exercicio");
   const seriesInput = document.getElementById("series");
   const repsInput = document.getElementById("reps");
@@ -374,49 +374,57 @@ body {
     });
   }
 
-  function adicionarExercicio() {
-    const aluno = alunoInput.value.trim();
-    const exercicio = exercicioInput.value.trim();
-    const series = parseFloat(String(seriesInput.value).replace(",", "."));
-    const reps = parseFloat(String(repsInput.value).replace(",", "."));
-    const carga = parseFloat(String(cargaInput.value).replace(",", "."));
+  async function adicionarExercicio() {
+  const aluno = alunoInput.value.trim();
+  const exercicio = exercicioInput.value.trim();
+  const series = parseFloat(String(seriesInput.value).replace(",", "."));
+  const reps = parseFloat(String(repsInput.value).replace(",", "."));
+  const carga = parseFloat(String(cargaInput.value).replace(",", "."));
 
-    if (
-      !aluno ||
-      !exercicio ||
-      !Number.isFinite(series) ||
-      !Number.isFinite(reps) ||
-      !Number.isFinite(carga) ||
-      series <= 0 ||
-      reps <= 0 ||
-      carga < 0
-    ) {
-      alert("Preencha aluno e todos os campos corretamente.");
-      return;
-    }
+  if (
+    !aluno ||
+    !exercicio ||
+    !Number.isFinite(series) ||
+    !Number.isFinite(reps) ||
+    !Number.isFinite(carga) ||
+    series <= 0 ||
+    reps <= 0 ||
+    carga < 0
+  ) {
+    alert("Preencha aluno e todos os campos corretamente.");
+    return;
+  }
 
-    exercicios.push({ exercicio, series, reps, carga });
+  const dados = new URLSearchParams({
+    aluno: aluno,
+    exercicio: exercicio,
+    series: String(series),
+    reps: String(reps),
+    carga: String(carga)
+  });
 
-    const dados = new URLSearchParams({
-      aluno: aluno,
-      exercicio: exercicio,
-      series: String(series),
-      reps: String(reps),
-      carga: String(carga)
-    });
-fetch(WEB_APP_URL, {
+  addBtn.disabled = true;
+  addBtn.textContent = "Enviando...";
+
+  try {
+   const r = await fetch(WEB_APP_URL, {
   method: "POST",
   headers: { "Content-Type": "application/x-www-form-urlencoded;charset=UTF-8" },
   body: dados.toString()
-})
-  .then((r) => r.text())
-  .then((txt) => {
-    console.log("Resposta:", txt);
-  })
-  .catch((err) => {
-    console.error("Erro no envio:", err);
-    alert("Falha ao enviar para a planilha.");
-  });
+});
+
+const txt = await r.text();
+let json = null;
+try { json = JSON.parse(txt); } catch (_) {}
+
+const okBackend = (json && json.ok === true) || txt.trim().toLowerCase() === "ok";
+
+if (!r.ok || !okBackend) {
+  throw new Error((json && json.erro) || `Falha HTTP ${r.status} | resposta: ${txt}`);
+}
+
+    // Só adiciona na lista local depois de confirmar que salvou no Sheets
+    exercicios.push({ exercicio, series, reps, carga });
 
     exercicioInput.value = "";
     seriesInput.value = "";
@@ -425,7 +433,15 @@ fetch(WEB_APP_URL, {
     exercicioInput.focus();
 
     render();
+    console.log("Enviado com sucesso:", json);
+  } catch (err) {
+    console.error("Erro no envio:", err);
+    alert("Não foi possível enviar para a planilha: " + err.message);
+  } finally {
+    addBtn.disabled = false;
+    addBtn.textContent = "Adicionar";
   }
+}
 
   addBtn.addEventListener("click", adicionarExercicio);
   pdfBtn.addEventListener("click", gerarPDF);
